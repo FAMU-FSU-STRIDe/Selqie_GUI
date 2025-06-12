@@ -11,20 +11,22 @@ from std_msgs.msg import String
 #--------ROS Subscriber Node--------#
 class GUI_Sub(Node):
     def __init__(self):
-        super().__init__('GUI subscriber')
+        super().__init__('GUI_subscriber')
         self.lock = threading.Lock()
         self.motor_info = {}
         self.motor_torques = {}
+        #reliability
+        qos_profile = QoSProfile(reliability = ReliabilityPolicy.RELIABLE, depth=10)
 
         #subscribing to all 8 motors
         for i in range(1,9):
             topic = f"/motor{i}/info"
-            self.create_subscription(MotorInfo, topic, self.make_callback(i), 10) #might not work if MotorInfo isn't called MotorInfo in ROS
+            self.create_subscription(msg.MotorInfo, topic, self.make_callback(i), qos_profile) #might not work if MotorInfo isn't called MotorInfo in ROS
         
         #subscribing to motor estimate for torque info
         for k in range(1,9):
             topic = f"/motor{k}/estimate"
-            self.create_subscription(MotorEstimate, topic, self.make_torque_callback(k), 10)
+            self.create_subscription(msg.MotorEstimate, topic, self.make_torque_callback(k), qos_profile)
 
     def make_torque_callback(self, motor_index):
         def callback(msg):
@@ -126,16 +128,16 @@ window.geometry("1000x750")
 window.title("SELQIE")
 
 #--------Frames--------#
-camera_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand', height = 450, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 500)
+camera_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand1', height = 450, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 500)
 camera_frame.place(x=5, y=5)
 
-leak_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand', height = 300, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
+leak_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand1', height = 300, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
 leak_frame.place(x=510, y=5)
 
-status_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand', height = 285, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 500)
+status_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand1', height = 285, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 500)
 status_frame.place(x=5, y=460)
 
-torque_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand', height = 435, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
+torque_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, cursor = 'hand1', height = 435, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
 torque_frame.place(x=510, y=310)
 
 #--------Camera--------#
