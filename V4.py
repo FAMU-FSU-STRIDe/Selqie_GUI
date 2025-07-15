@@ -1,3 +1,6 @@
+#GUI code for SELQIE
+
+#imports for GUI
 from tkinter import *
 import tkinter as tk
 import cv2, queue, threading
@@ -5,6 +8,8 @@ from PIL import Image, ImageTk
 import threading
 import math
 import subprocess, shlex
+
+#imports for ROS integration
 #from actuation_msgs import msg
 #import rclpy
 #from rclpy.node import Node
@@ -13,47 +18,46 @@ import subprocess, shlex
 
 #use subprocess so the first thing gui does is open up tmux
 
-#tmux_path = "/selqie/blahs"
-
-#subprocess.Popen(["start", "cmd", "/k", "echo Hello from new terminal! && pause"], shell=True)
-
-#subprocess.Popen(["open", "-a", "Terminal", "--args", "sh", "-c"])
-
-#for mac
+#subprocess for mac
 target_directory = "/Users/maddyboss/Desktop/gui" 
 script=f'tell application "Terminal" to do script "cd {target_directory}"'
 subprocess.Popen(["osascript", "-e", script])
 
 
-#for linux
+#subprocess for linux
 #target_directory="/home/" figure out path to tmux
 #subprocess.Popen(["gnome-terminal", "--working-directory", target_directory])
+
+
 
 #Table class to create table for status
 #------Table Class-------#
 class Table:
     def __init__(self, parent, data, x=0, y=0):
-        frame = Frame(parent)
+        frame = Frame(parent)   #constructor creating a Frame instance inside the parent widget
         frame.place(x=x, y=y)
-        entries = []
+        self.entries = []   #creating an instance variable to hold the entries
+
+        #dynamically create the table based on the data provided
+        total_rows = len(data)
+        total_columns = len(data[0]) if data else 0
         for i in range(total_rows):
             row_entries = []
             for j in range(total_columns):
-                e = Entry(frame, width = 24, fg = 'black')
+                e = Entry(frame, width=24, fg='black')
                 e.grid(row=i, column=j)
                 e.insert(END, data[i][j])
                 row_entries.append(e)
-            entries.append(row_entries)
+            self.entries.append(row_entries)
         
     #live updates for the status as it gets info from ROS
     def update_cell (self, row, col, value):
-        entries[row][col].delete(0, END)
-        entries[row][col].insert(0, value)
+        self.entries[row][col].delete(0, END)
+        self.entries[row][col].insert(0, value)
 
 #outline for table
 part_status = [(f'Motor Driver {i} Temp', '--') for i in range (0,8)]
-total_rows = len(part_status)
-total_columns = 2
+
 
 #------------------Graph for Torque Tracker-------------------#
 def draw_graph_paper(torque, width, height, spacing=20):
