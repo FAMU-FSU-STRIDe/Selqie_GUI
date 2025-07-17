@@ -147,8 +147,8 @@ def on_gait_change(*args):
 
     #repopulate the og menu
     for var, drop, opts in [
-        (param1_selc, param1_drop, param1_options)
-        (param2_selc, param2_drop, param2_options)
+        (param1_selc, param1_drop, param1_options),
+        (param2_selc, param2_drop, param2_options),
         (param3_selc, param3_drop, param3_options)
     ]:
         drop['menu'].delete(0, 'end')
