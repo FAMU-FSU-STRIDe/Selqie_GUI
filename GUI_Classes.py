@@ -87,13 +87,125 @@ class ControlPanel():
 
         stop = self.create_button(parent, "Stop", 'black')
         stop.place(relx = 0.25, rely = 0.6, relwidth = 0.2, relheight = 0.15)
+   
+        #gait selection
+        self.gait_options = ["Choice", "run_trajectory", "swim"]
+        self.selected_gait = StringVar()
+        self.selected_gait.set(self.gait_options[0])
+        self.selected_gait.trace_add("write", self.on_gait_change)
+        self.dropdown_gait = tk.OptionMenu(parent, self.selected_gait, *self.gait_options)
+        self.dropdown_gait.place(relx = 0.63, rely = 0.1, relwidth = 0.2, relheight = 0.1)
+        
+        self.param1_label = self.create_label(parent, "Parameter 1", 'black')
+        self.param1_label.place(relx = 0.5, rely = 0.25, relwidth = 0.1, relheight = 0.1)
 
-    
+        self.param2_label = self.create_label(parent, "Parameter 2", 'black')
+        self.param2_label.place(relx = 0.5, rely = 0.4, relwidth = 0.1, relheight = 0.1)
+
+        self.param3_label = self.create_label(parent, "Parameter 3", 'black')
+        self.param3_label.place(relx = 0.5, rely = 0.55, relwidth = 0.1, relheight = 0.1)
+
+        self.param1_selc = StringVar()
+        self.param1_selc.set("")
+        self.param1_drop = tk.OptionMenu(parent, self.param1_selc, "")
+        self.param1_drop.place(relx = 0.63, rely = 0.25, relwidth = 0.2, relheight = 0.1)
+
+        self.param2_selc = StringVar()
+        self.param2_selc.set("")
+        self.param2_drop = tk.OptionMenu(parent, self.param2_selc, "")
+        self.param2_drop.place(relx = 0.63, rely = 0.4, relwidth = 0.2, relheight = 0.1)
+
+        self.param3_selc = StringVar()
+        self.param3_selc.set("")
+        self.param3_drop = tk.OptionMenu(parent, self.param3_selc, "")
+        self.param3_drop.place(relx = 0.63, rely = 0.55, relwidth = 0.2, relheight = 0.1)
+
+        self.selected_gait.trace_add("write", self.on_gait_change)
+        self.submit_btn = self.create_button(parent, "Submit", 'black')
+        self.submit_btn.config(command = self.on_submit)
+        self.submit_btn.place(relx = 0.85, rely = 0.3, relwidth = 0.1, relheight = 0.2)
+
+    def on_selection_change(self, *args):
+        self.selection  = self.selected_gait.get()
+        if self.selection != "Choice":
+            print("Selected:", self.selection)
+
+    def on_gait_change(self, *args):
+        self.gait = self.selected_gait.get()
+
+        if self.gait == "run_trajectory":
+            self.param1_options = ["Choice", "walk.txt", "idk.txt"]
+            self.param2_options = ["Choice", "5"]
+            self.param3_options = ["Choice", "idk"]
+            self.param3_drop.config(state = "normal")
+
+        elif self.gait == "swim":
+            self.param1_options = ["Choice", "idk.txt", "idk.txt"]
+            self.param2_options = ["Choice", "idk"]
+            self.param3_options = [""]
+            self.param3_selc.set("                  ")
+            self.param3_drop.config(state = "disabled")
+
+        else:
+            self.param1_options = []
+            self.param2_options = []
+            self.param3_options = []
+            self.param3_selc.set("                  ")
+            self.param3_drop.config(state = "disabled")
+
+        self.param1_drop['menu'].delete(0, 'end')
+        for opt in self.param1_options:
+            self.param1_drop['menu'].add_command(label = opt, command = tk._setit(self.param1_selc, opt))
+        self.param1_selc.set(self.param1_options[0])
+
+        self.param2_drop['menu'].delete(0, 'end')
+        for opt in self.param2_options:
+            self.param2_drop['menu'].add_command(label = opt, command = tk._setit(self.param2_selc, opt))
+        self.param2_selc.set(self.param2_options[0])
+
+        self.param3_drop['menu'].delete(0, 'end')
+        for opt in self.param3_options:
+            self.param3_drop['menu'].add_command(label = opt, command = tk._setit(self.param3_selc, opt))
+        self.param3_selc.set(self.param3_options[0])
+
+        #repopulate original menu
+        for var, drop, opts in [
+            (self.param1_selc, self.param1_drop, self.param1_options),
+            (self.param2_selc, self.param2_drop, self.param2_options),
+            (self.param3_selc, self.param3_drop, self.param3_options)
+        ]:
+            drop['menu'].delete(0, 'end')
+            for opt in opts:
+                drop['menu'].add_command(label=opt, command=tk._setit(var, opt))
+            var.set(opts[0] if opts else "")
+        
+    def clear_parameters(self):
+        self.param1_selc.set("            ")
+        self.param2_selc.set("              ")
+        self.param3_selc.set("              ")
+        self.selected_gait.set("Choice")
+        self.param3_drop.config(state="normal")
+
+    def on_submit(self):
+        self.gait = self.selected_gait.get()
+        p1 = self.param1_selc.get()
+        p2 = self.param2_selc.get()
+        p3 = self.param3_selc.get()
+
+        if self.gait == "Choice":
+            tk.messagebox.showerror("Missing choice", "Please select a gait.")
+            return
+            
+
     def create_widget(self, parent, widget_type, **options):
         return widget_type(parent, **options)
 
     def create_button(self, parent, text, fg):
         return self.create_widget(parent, tk.Button, text=text, fg=fg, bg='lightblue', bd=3, cursor='hand1', highlightbackground = '#E1E4ED', relief = tk.RAISED)
+    
+    def create_label(self, parent, text, fg):
+        return self.create_widget(parent, tk.Label, text=text, fg=fg,bg = "#E6EAF5", bd=3, cursor='hand1', highlightbackground = '#E1E4ED')
+
     
 
 #class for error log element
@@ -148,8 +260,6 @@ class Torque():
             'top':5, 
             'right':10
         }
-
-        
 
     def draw_graph_axes(self, width, height, spacing = 20):
         canvas = self.canvas
