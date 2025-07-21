@@ -1,7 +1,8 @@
-from GUI_Classes import Table, Camera, ControlPanel, ErrorLog
+from GUI_Classes import Table, Camera, ControlPanel, ErrorLog, Torque 
 from tkinter import *
 import tkinter as tk
 import cv2, queue, threading
+
 
 
 window = Tk()
@@ -32,6 +33,8 @@ status_frame.place(relx=0.34, rely=0.22, relwidth=0.325, relheight=0.775)
 error_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, height = 500, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 500)
 error_frame.place(relx = 0.003, rely = 0.615, relwidth = 0.335, relheight = 0.38)
 
+torque_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, height = 435, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
+torque_frame.place(relx=0.668, rely=0.22, relwidth=0.329, relheigh=0.775)
 
 part_status = [(f'Motor Driver {i} Temp', '--') for i in range (0,8)]
 
@@ -40,6 +43,9 @@ table = Table(status_frame, part_status)
 camera = Camera(camera_frame, 0.003, 0, 0.99, 0.90)
 control = ControlPanel(control_frame)
 error = ErrorLog(error_frame)
+torque = Torque(torque_frame)
+torque.refresh_graph()
+
 
 threading.Thread(target = camera.camera_queue, daemon=True).start()
 camera.poll_camera()

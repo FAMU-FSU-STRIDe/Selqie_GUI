@@ -3,6 +3,7 @@ import tkinter as tk
 import cv2, queue, threading
 from PIL import Image, ImageTk
 
+
 #class for the table element
 class Table:
     def __init__(self, parent, data, x=0, y=0):
@@ -134,4 +135,74 @@ class ErrorLog():
     
     def clear_error(self):
         self.error_display.delete(1.0, tk.END)
-    
+
+#class for torque tracker
+class Torque():
+    def __init__(self, parent):
+        self.canvas = Canvas(parent, bg = 'white')
+        self.canvas.pack(fill = "both", expand = True)
+        self.canvas.bind("<Configure>", self.refresh_graph)
+        self.graph_padding = {
+            'left':50, 
+            'bottom':40, 
+            'top':5, 
+            'right':10
+        }
+
+        
+
+    def draw_graph_axes(self, width, height, spacing = 20):
+        canvas = self.canvas
+        canvas.delete("grid")
+
+        x0 = self.graph_padding['left']
+        y0 = self.graph_padding['top']
+        x1 = width - self.graph_padding['right']
+        y1 = height - self.graph_padding['bottom']
+
+        total_seconds = 300
+        small_tick_interval = 10
+        seconds_per_pixel = total_seconds / (x1 - 40)
+
+        #grid lines
+        for x in range(x0, x1, spacing):
+            canvas.create_line(x, y0, x, y1, fill = 'lightgray', tags = 'grid')
+
+        for y in range(y0, y1, spacing):
+            canvas.create_line(x0, y, x1, y, fill = 'lightgray', tags = 'grid')
+
+        #x ticks
+        for t in range(0, total_seconds + 1, small_tick_interval):
+            x = x0 + t/seconds_per_pixel
+            tick_height = 10 if t % 60 == 0 else 5
+            canvas.create_line(x, y1, x, y1 + tick_height, fill = 'black', tags = 'grid')
+
+        if t % 60 == 0:
+            minutes = t/60
+            canvas.create_text(x, y1 + tick_height + 15, text=f"{int(minutes)}m", fill='black', tags='grid')
+
+        #y ticks
+        torque_max = 10
+        torque_tick = 2
+        pixels_per_nm = (y1 - y0) / torque_max
+
+        for torque_val in range(0, torque_max + 1, torque_tick):
+            y = y1 - (torque_val * pixels_per_nm)
+            tick_w = 10 if torque_val % 5 == 0 else 5
+            canvas.create_line(x0 - tick_w, y, x0, y, fill='black', tags='grid')
+
+            if torque_val % 2 == 0:
+                canvas.create_text(x0 - tick_w - 5, y, text=str(torque_val), fill='black', anchor='e', tags='grid')
+
+        #axes lines
+        canvas.create_line(x0, y0, x0, y1, width = 2, fill='black', tags='grid')
+        canvas.create_line(x0, y1, x1, y1, width = 2, fill='black', tags='grid')
+
+        #axes labels
+        canvas.create_text((x0 + x1) // 2, height - 10, text = "Time (min)", tags = 'grid')
+        canvas.create_text(20, (y0 + y1) // 2, text = "Torque (Nm)", angle = 90, tags = 'grid')
+
+    def refresh_graph(self, event=None):
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+        self.draw_graph_axes(width, height)
