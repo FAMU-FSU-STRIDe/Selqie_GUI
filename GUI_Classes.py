@@ -2,7 +2,47 @@ from tkinter import *
 import tkinter as tk
 import cv2, queue, threading
 from PIL import Image, ImageTk
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+import threading
+from actuation_msgs import msg
 
+class GUISub(Node):
+    def __init__(self):
+        super().__init__('GUI_Subscriber')
+        self.lock = threading.Lock()
+        self.motor_info = {}
+        self.motor_torques = {}
+
+        qos_profile = QoSProfile(reliability = 
+            ReliabilityPolicy.BEST_EFFORT, depth = 10)
+        
+        #subscribing to all 8 motors
+        for i in range(0, 8):
+            topic = f"/motor{i}/info"
+            self.create_subscription(msg.MotorInfo, topic, self.make_callback(i), qos_profile)
+
+        #subscribing to motor estimate for torque info
+        for k in range(0, 8):
+            topic = f"/motor{k}/estimate"
+            self.create_subscription(msg.MotorEstimate, topic, self.make_torque_callback(k), qos_profile)
+
+    def make_torque_callback(self, motor_index):
+        def callback(msg):
+            self.motor_torques[f"motor{motor_index}"] = msg.torq_estimate
+        return callback
+    
+    def make_callback(self, motor_index):
+        def callback(msg):
+            try:
+                temp = float(msg.fet_temperature)
+                with self.lock:
+                    self.motor_info[f"motor{motor_index}"] = temp
+            except Exception as e:
+                self.get_logger().warm(f"Bad temp reading {motor_index}")
+        return callback
 
 #class for the table element
 class Table:
@@ -316,3 +356,6 @@ class Torque():
         width = self.canvas.winfo_width()
         height = self.canvas.winfo_height()
         self.draw_graph_axes(width, height)
+
+
+

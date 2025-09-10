@@ -2,9 +2,10 @@ from GUI_Classes import Table, Camera, ControlPanel, ErrorLog, Torque
 from tkinter import *
 import tkinter as tk
 import cv2, queue, threading
+import rclpy
+import math
 
-
-
+#-----Tkinter setup--------------------------------------------------------------------------------#
 window = Tk()
 #window.geometry("1500x750")
 window.attributes("-fullscreen", True)
@@ -13,10 +14,12 @@ window.title("SELQIE")
 
 def on_closing():
     running = False
+    camera.running = False
     window.destroy()
 
 window.protocol("WM_DELETE_WINDOW", on_closing)
 
+#-----Frames------------------------------------------------------------------------------------------#
 def create_widget(parent, widget_type, **options):
     return widget_type(parent, **options)
 
@@ -36,6 +39,8 @@ error_frame.place(relx = 0.003, rely = 0.615, relwidth = 0.335, relheight = 0.38
 torque_frame = create_widget(window, tk.Frame, bg="#E6EAF5", bd = 2, height = 435, highlightcolor = 'red', highlightthickness=2, highlightbackground = 'black', relief = tk.RAISED, width = 485)
 torque_frame.place(relx=0.668, rely=0.22, relwidth=0.329, relheigh=0.775)
 
+
+#-----Widgets------------------------------------------------------------------------------------------#
 part_status = [(f'Motor Driver {i} Temp', '--') for i in range (0,8)]
 
 
@@ -46,8 +51,35 @@ error = ErrorLog(error_frame)
 torque = Torque(torque_frame)
 torque.refresh_graph()
 
+#-----ROS Setup------------------------------------------------------------------------------------------#
+rclpy.init()
+ros_node = GUISub()
 
+#-----Threading-------------------------------------------------------------------------------------------#
+gui_running = [True]
+
+#camera thread
 threading.Thread(target = camera.camera_queue, daemon=True).start()
 camera.poll_camera()
 
+#ROS spin thread
+def ros_spin():
+    while gui_running[0]:
+        rclpy.spin_once(ros_node, timeout_sec=0.1)
+
+threading.Thread(target=ros_spin, daemon = True).start()
+
+#GUI update loop
+def update_gui():
+    with ros_node.lock:
+        for i in range(8):
+            motor_key = f"motor{i}"
+            if motor_key in ros_node.motor_info:
+                temp = ros_node.motor_info[motor_key]
+                if isinstance(temp, (int, float)) and not math.isnan(temp):
+                    table.update_cell(i, 1, f"{temp:.2f}")
+    if gui_running[0]:
+        window.after(100, update_gui)
+
+update_gui()
 window.mainloop()
