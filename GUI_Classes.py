@@ -8,6 +8,7 @@ from std_msgs.msg import String
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 import threading
 from actuation_msgs import msg
+import subprocess
 
 class GUISub(Node):
     def __init__(self):
@@ -174,8 +175,8 @@ class ControlPanel():
         self.gait = self.selected_gait.get()
 
         if self.gait == "run_trajectory":
-            self.param1_options = ["Choice", "walk.txt", "idk.txt"]
-            self.param2_options = ["Choice", "5"]
+            self.param1_options = ["Choice", "walk.txt", "swim.txt", "jump.txt", "crawl.txt"]
+            self.param2_options = ["Choice", "5", "6", "7", "8", "9", "10", "15", "20", "25", "30"]
             self.param3_options = ["Choice", "idk"]
             self.param3_drop.config(state = "normal")
 
@@ -231,6 +232,7 @@ class ControlPanel():
         p1 = self.param1_selc.get()
         p2 = self.param2_selc.get()
         p3 = self.param3_selc.get()
+        self.clear_parameters()
 
         if self.gait == "Choice":
             tk.messagebox.showerror("Missing choice", "Please select a gait.")
