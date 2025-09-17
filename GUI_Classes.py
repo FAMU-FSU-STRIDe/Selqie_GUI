@@ -238,7 +238,8 @@ class ControlPanel():
             tk.messagebox.showerror("Missing choice", "Please select a gait.")
             return
             
-
+    def on_zero(self):
+        pass
     def create_widget(self, parent, widget_type, **options):
         return widget_type(parent, **options)
 

@@ -4,6 +4,7 @@ import tkinter as tk
 import cv2, queue, threading
 import rclpy
 import math
+import subprocess
 
 #-----Tkinter setup--------------------------------------------------------------------------------#
 window = Tk()
@@ -80,6 +81,11 @@ def update_gui():
                     table.update_cell(i, 1, f"{temp:.2f}")
     if gui_running[0]:
         window.after(100, update_gui)
+
+#---Opening TMUX----------------------------------------------------------------------------------#
+open_tmux_targ_dir = "/home/stride/selqie_ws/src/tmux"
+open_tmux_command = ["./selqie.sh"]
+subprocess.Popen(open_tmux_command, cwd = open_tmux_targ_dir)
 
 update_gui()
 window.mainloop()
