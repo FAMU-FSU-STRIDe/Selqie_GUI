@@ -10,6 +10,16 @@ import threading
 from actuation_msgs import msg
 import subprocess
 
+#---TMUX Info-------------------------------------------------------------------------------------------#
+TMUX_SESSION = "selqie"
+TMUX_WINDOW = 0
+TMUX_INPUT_PANE = 2
+
+def send_to_tmux(command):
+    target = f"{TMUX_SESSION}:{TMUX_WINDOW}.{TMUX_INPUT_PANE}"
+    subprocess.run(["tmux", "send-keys", "-t", target, command, "C-m"])
+
+#---GUI Element Classes---------------------------------------------------------------------------------#
 class GUISub(Node):
     def __init__(self):
         super().__init__('GUI_Subscriber')
@@ -111,19 +121,19 @@ class Camera(tk.Label):
 class ControlPanel():
     def __init__(self, parent):
         #buttons for control panel
-        zero = self.create_button(parent, "Zero", 'black')
+        zero = self.create_button(parent, "Zero", 'black', command = self.on_zero)
         zero.place(relx = 0.03, rely = 0.1, relwidth = 0.2, relheight = 0.15)
 
-        idle = self.create_button(parent, "Idle", 'black')
+        idle = self.create_button(parent, "Idle", 'black' ,command = self.on_idle)
         idle.place(relx = 0.03, rely = 0.35, relwidth = 0.2, relheight = 0.15)
 
-        ready = self.create_button(parent, "Ready", 'black')
+        ready = self.create_button(parent, "Ready", 'black', command = self.on_ready)
         ready.place(relx = 0.03, rely = 0.6, relwidth = 0.2, relheight = 0.15)
 
-        stand = self.create_button(parent, "Stand", 'black')
+        stand = self.create_button(parent, "Stand", 'black', command = self.on_stand)
         stand.place(relx = 0.25, rely = 0.1, relwidth = 0.2, relheight = 0.15)
 
-        start = self.create_button(parent, "Start", 'black')
+        start = self.create_button(parent, "Start", 'black', command = self.on_start)
         start.place(relx = 0.25, rely = 0.35, relwidth = 0.2, relheight = 0.15)
 
         stop = self.create_button(parent, "Stop", 'black')
@@ -239,7 +249,29 @@ class ControlPanel():
             return
             
     def on_zero(self):
+        command = "zero"
+        send_to_tmux(command)
+
+    def on_idle(self):
+        command = "idle"
+        send_to_tmux(command)
+
+    def on_ready(self):
+        command = "ready"
+        send_to_tmux(command)
+
+    def on_stand(self):
+        command = "stand"
+        send_to_tmux(command)
+
+    def on_start(self):
+        command  = "startup_sequence"
+        send_to_tmux(command)
+
+    def on_stop(self):
         pass
+        #if we want this button, a stop command has to be written
+    
     def create_widget(self, parent, widget_type, **options):
         return widget_type(parent, **options)
 
